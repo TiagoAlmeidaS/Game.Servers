@@ -114,6 +114,38 @@ else
     print_warning "Arquivo de configuração do provedor não encontrado: terraform/environments/${PROVIDER}.tfvars"
     print_message "Criando configuração básica..."
     
+    # Configurações específicas por provedor
+    case $PROVIDER in
+        vultr)
+            REGION="sao-paulo"
+            INSTANCE_SIZE="vc2-1c-1gb"
+            ;;
+        digitalocean)
+            REGION="nyc3"
+            INSTANCE_SIZE="s-2vcpu-8gb"
+            ;;
+        hostinger)
+            REGION="brazil"
+            INSTANCE_SIZE="game-panel-1"
+            ;;
+        aws)
+            REGION="us-east-1"
+            INSTANCE_SIZE="t3.medium"
+            ;;
+        azure)
+            REGION="eastus"
+            INSTANCE_SIZE="Standard_B2s"
+            ;;
+        linode)
+            REGION="us-east"
+            INSTANCE_SIZE="g6-nanode-1"
+            ;;
+        *)
+            REGION="nyc3"
+            INSTANCE_SIZE="s-2vcpu-8gb"
+            ;;
+    esac
+    
     # Criar configuração básica
     cat > terraform/terraform.tfvars << EOF
 # Configuração para $PROVIDER
@@ -123,8 +155,9 @@ server_name = "MeuServidor${GAME_TYPE^}"
 server_password = "minha-senha-segura"
 max_players = 8
 environment = "$ENVIRONMENT"
-region = "nyc3"
-instance_size = "s-2vcpu-8gb"
+region = "$REGION"
+instance_size = "$INSTANCE_SIZE"
+plan_id = "$INSTANCE_SIZE"
 EOF
 fi
 

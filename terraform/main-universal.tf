@@ -89,10 +89,10 @@ locals {
     vultr = {
       source = "./modules/vps-base-vultr"
       config = {
-        vultr_api_key   = var.vultr_api_key
-        ssh_key_id      = var.ssh_key_id
-        region          = var.region
-        instance_size   = var.instance_size
+        vultr_api_key = var.vultr_api_key
+        ssh_key_id    = var.ssh_key_id
+        region        = var.region
+        plan_id       = var.plan_id
       }
     }
   }

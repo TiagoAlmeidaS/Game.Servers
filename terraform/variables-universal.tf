@@ -77,6 +77,12 @@ variable "instance_size" {
   default     = "s-2vcpu-8gb"
 }
 
+variable "plan_id" {
+  description = "ID do plano (Vultr)"
+  type        = string
+  default     = "vc2-1c-1gb"
+}
+
 # ===========================================
 # CREDENCIAIS POR PROVEDOR
 # ===========================================

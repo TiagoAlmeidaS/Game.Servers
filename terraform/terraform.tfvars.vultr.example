@@ -1,0 +1,10 @@
+# Configurações para Vultr
+provider = "vultr"
+vultr_api_key = "seu-token-aqui"
+ssh_key_id = "seu-ssh-key-id"
+region = "sao-paulo"  # Região do Brasil
+plan_id = "vc2-1c-1gb"  # Plano mais barato (R$ 17,50/mês)
+game_type = "minecraft"
+server_name = "MeuServidorMinecraft"
+max_players = 10
+environment = "dev"

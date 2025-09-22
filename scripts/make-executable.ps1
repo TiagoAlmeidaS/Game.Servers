@@ -9,7 +9,9 @@ $scripts = @(
     "verify-server-deployment.sh",
     "deploy-with-verification.sh",
     "deploy-universal.sh",
-    "production-deploy.sh"
+    "production-deploy.sh",
+    "setup-vultr.sh",
+    "test-vultr.sh"
 )
 
 foreach ($script in $scripts) {
