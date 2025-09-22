@@ -1,0 +1,33 @@
+[Unit]
+Description=Minecraft Dedicated Server
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=gameserver
+Group=gameserver
+WorkingDirectory=/opt/gameservers/minecraft
+ExecStart=/opt/gameservers/minecraft/start_server.sh
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=minecraft-server
+
+# Configurações de segurança
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/gameservers/minecraft /home/gameserver/logs
+
+# Configurações de recursos
+LimitNOFILE=65536
+LimitNPROC=32768
+
+# Configurações de memória
+MemoryLimit={{ minecraft_memory_limit | default('4G') }}
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,185 @@
+---
+# Playbook para configuração de monitoramento em produção
+
+- name: Setup de monitoramento para produção
+  hosts: all
+  become: yes
+  vars:
+    game_type: "{{ game_type }}"
+    provider: "{{ provider }}"
+    environment: "{{ environment }}"
+
+  tasks:
+    - name: Instalar ferramentas de monitoramento
+      apt:
+        name:
+          - htop
+          - iotop
+          - nethogs
+          - nload
+          - iftop
+          - dstat
+          - sysstat
+        state: present
+
+    - name: Configurar Prometheus Node Exporter
+      block:
+        - name: Baixar Node Exporter
+          get_url:
+            url: "https://github.com/prometheus/node_exporter/releases/download/v1.6.1/node_exporter-1.6.1.linux-amd64.tar.gz"
+            dest: "/tmp/node_exporter.tar.gz"
+
+        - name: Extrair Node Exporter
+          unarchive:
+            src: "/tmp/node_exporter.tar.gz"
+            dest: "/opt/"
+            remote_src: yes
+
+        - name: Criar link simbólico
+          file:
+            src: "/opt/node_exporter-1.6.1.linux-amd64/node_exporter"
+            dest: "/usr/local/bin/node_exporter"
+            state: link
+
+        - name: Criar usuário para node_exporter
+          user:
+            name: node_exporter
+            system: yes
+            shell: /bin/false
+            home: /var/lib/node_exporter
+
+        - name: Configurar systemd service para Node Exporter
+          copy:
+            content: |
+              [Unit]
+              Description=Node Exporter
+              After=network.target
+
+              [Service]
+              User=node_exporter
+              Group=node_exporter
+              Type=simple
+              ExecStart=/usr/local/bin/node_exporter
+              Restart=always
+              RestartSec=5
+
+              [Install]
+              WantedBy=multi-user.target
+            dest: /etc/systemd/system/node_exporter.service
+            mode: '0644'
+
+        - name: Habilitar e iniciar Node Exporter
+          systemd:
+            name: node_exporter
+            enabled: yes
+            state: started
+            daemon_reload: yes
+
+    - name: Configurar Grafana Agent (se provider for AWS)
+      block:
+        - name: Baixar Grafana Agent
+          get_url:
+            url: "https://github.com/grafana/agent/releases/download/v0.37.0/grafana-agent-linux-amd64.zip"
+            dest: "/tmp/grafana-agent.zip"
+
+        - name: Instalar unzip
+          apt:
+            name: unzip
+            state: present
+
+        - name: Extrair Grafana Agent
+          unarchive:
+            src: "/tmp/grafana-agent.zip"
+            dest: "/opt/"
+            remote_src: yes
+
+        - name: Criar link simbólico
+          file:
+            src: "/opt/grafana-agent-linux-amd64/grafana-agent"
+            dest: "/usr/local/bin/grafana-agent"
+            state: link
+
+        - name: Configurar Grafana Agent
+          template:
+            src: grafana-agent.yml.j2
+            dest: /etc/grafana-agent.yml
+            mode: '0644'
+
+        - name: Configurar systemd service para Grafana Agent
+          copy:
+            content: |
+              [Unit]
+              Description=Grafana Agent
+              After=network.target
+
+              [Service]
+              Type=simple
+              ExecStart=/usr/local/bin/grafana-agent --config.file=/etc/grafana-agent.yml
+              Restart=always
+              RestartSec=5
+
+              [Install]
+              WantedBy=multi-user.target
+            dest: /etc/systemd/system/grafana-agent.service
+            mode: '0644'
+
+        - name: Habilitar e iniciar Grafana Agent
+          systemd:
+            name: grafana-agent
+            enabled: yes
+            state: started
+            daemon_reload: yes
+      when: provider == "aws"
+
+    - name: Configurar monitoramento específico do provedor
+      include_tasks: "monitoring-{{ provider }}.yml"
+      when: provider in ['aws', 'azure', 'digitalocean', 'hostinger', 'linode', 'vultr']
+
+    - name: Configurar alertas de sistema
+      block:
+        - name: Instalar mailutils
+          apt:
+            name: mailutils
+            state: present
+
+        - name: Configurar script de alertas
+          template:
+            src: alert-script.sh.j2
+            dest: /home/gameserver/alert-script.sh
+            owner: gameserver
+            group: gameserver
+            mode: '0755'
+
+        - name: Configurar cron para alertas
+          cron:
+            name: "Alertas do sistema"
+            job: "*/5 * * * * /home/gameserver/alert-script.sh"
+            user: gameserver
+
+    - name: Configurar métricas do jogo
+      block:
+        - name: Criar script de métricas do jogo
+          template:
+            src: game-metrics.sh.j2
+            dest: /home/gameserver/game-metrics.sh
+            owner: gameserver
+            group: gameserver
+            mode: '0755'
+
+        - name: Configurar cron para métricas
+          cron:
+            name: "Métricas do jogo"
+            job: "*/1 * * * * /home/gameserver/game-metrics.sh"
+            user: gameserver
+
+    - name: Mostrar informações de monitoramento
+      debug:
+        msg: |
+          ==========================================
+          MONITORAMENTO CONFIGURADO!
+          ==========================================
+          Node Exporter: http://{{ ansible_default_ipv4.address }}:9100
+          Grafana Agent: {{ 'Ativo' if provider == 'aws' else 'N/A' }}
+          Alertas: Configurados
+          Métricas do Jogo: Configuradas
+          ==========================================

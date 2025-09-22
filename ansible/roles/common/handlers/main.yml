@@ -1,0 +1,11 @@
+---
+# Handlers da role comum
+
+- name: restart systemd
+  systemd:
+    daemon_reload: yes
+
+- name: restart logrotate
+  systemd:
+    name: logrotate
+    state: restarted

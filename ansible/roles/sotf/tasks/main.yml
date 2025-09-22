@@ -1,0 +1,71 @@
+---
+# Role para Sons of the Forest
+
+- name: Verificar se SteamCMD está instalado
+  command: which steamcmd
+  register: steamcmd_check
+  failed_when: false
+  changed_when: false
+
+- name: Instalar dependências específicas do SotF
+  apt:
+    name:
+      - lib32gcc-s1
+      - lib32stdc++6
+      - libc6-i386
+    state: present
+
+- name: Criar diretório do servidor SotF
+  file:
+    path: /opt/gameservers/sotf
+    state: directory
+    owner: gameserver
+    group: gameserver
+    mode: '0755'
+
+- name: Baixar servidor SotF via SteamCMD
+  shell: |
+    steamcmd +login anonymous +app_update 2465200 validate +quit
+  args:
+    chdir: /opt/gameservers/sotf
+    creates: /opt/gameservers/sotf/SonsOfTheForestDS.exe
+  become_user: gameserver
+
+- name: Criar arquivo de configuração do servidor
+  template:
+    src: dedicatedserver.cfg.j2
+    dest: /opt/gameservers/sotf/dedicatedserver.cfg
+    owner: gameserver
+    group: gameserver
+    mode: '0644'
+
+- name: Criar script de inicialização
+  template:
+    src: start_server.sh.j2
+    dest: /opt/gameservers/sotf/start_server.sh
+    owner: gameserver
+    group: gameserver
+    mode: '0755'
+
+- name: Configurar systemd service
+  template:
+    src: sotf-server.service.j2
+    dest: /etc/systemd/system/sotf-server.service
+    mode: '0644'
+  notify: restart systemd
+
+- name: Habilitar e iniciar serviço SotF
+  systemd:
+    name: sotf-server
+    enabled: yes
+    state: started
+    daemon_reload: yes
+
+- name: Verificar se o serviço está rodando
+  systemd:
+    name: sotf-server
+  register: service_status
+
+- name: Mostrar status do serviço
+  debug:
+    msg: "Servidor SotF {{ 'rodando' if service_status.status.ActiveState == 'active' else 'com problemas' }}"

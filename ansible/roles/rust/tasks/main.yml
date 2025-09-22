@@ -1,0 +1,112 @@
+---
+# Role para Rust
+
+- name: Verificar se SteamCMD está instalado
+  command: which steamcmd
+  register: steamcmd_check
+  failed_when: false
+  changed_when: false
+
+- name: Instalar dependências específicas do Rust
+  apt:
+    name:
+      - lib32gcc-s1
+      - lib32stdc++6
+      - libc6-i386
+      - lib32z1
+    state: present
+
+- name: Criar diretório do servidor Rust
+  file:
+    path: /opt/gameservers/rust
+    state: directory
+    owner: gameserver
+    group: gameserver
+    mode: '0755'
+
+- name: Baixar servidor Rust via SteamCMD
+  shell: |
+    steamcmd +login anonymous +app_update 258550 validate +quit
+  args:
+    chdir: /opt/gameservers/rust
+    creates: /opt/gameservers/rust/RustDedicated
+  become_user: gameserver
+
+- name: Criar diretório de saves
+  file:
+    path: /opt/gameservers/rust/saves
+    state: directory
+    owner: gameserver
+    group: gameserver
+    mode: '0755'
+
+- name: Criar diretório de logs
+  file:
+    path: /opt/gameservers/rust/logs
+    state: directory
+    owner: gameserver
+    group: gameserver
+    mode: '0755'
+
+- name: Criar diretório de oxide
+  file:
+    path: /opt/gameservers/rust/oxide
+    state: directory
+    owner: gameserver
+    group: gameserver
+    mode: '0755'
+
+- name: Baixar Oxide (se habilitado)
+  block:
+    - name: Baixar Oxide
+      get_url:
+        url: "https://github.com/OxideMod/Oxide.Rust/releases/latest/download/Oxide.Rust-linux.zip"
+        dest: /tmp/oxide-rust.zip
+        owner: gameserver
+        group: gameserver
+        mode: '0644'
+
+    - name: Extrair Oxide
+      unarchive:
+        src: /tmp/oxide-rust.zip
+        dest: /opt/gameservers/rust/
+        owner: gameserver
+        group: gameserver
+        remote_src: yes
+
+    - name: Limpar arquivo temporário
+      file:
+        path: /tmp/oxide-rust.zip
+        state: absent
+  when: rust_oxide | default(true)
+
+- name: Criar script de inicialização
+  template:
+    src: start_server.sh.j2
+    dest: /opt/gameservers/rust/start_server.sh
+    owner: gameserver
+    group: gameserver
+    mode: '0755'
+
+- name: Configurar systemd service
+  template:
+    src: rust-server.service.j2
+    dest: /etc/systemd/system/rust-server.service
+    mode: '0644'
+  notify: restart systemd
+
+- name: Habilitar e iniciar serviço Rust
+  systemd:
+    name: rust-server
+    enabled: yes
+    state: started
+    daemon_reload: yes
+
+- name: Verificar se o serviço está rodando
+  systemd:
+    name: rust-server
+  register: service_status
+
+- name: Mostrar status do serviço
+  debug:
+    msg: "Servidor Rust {{ 'rodando' if service_status.status.ActiveState == 'active' else 'com problemas' }}"

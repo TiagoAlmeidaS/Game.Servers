@@ -1,0 +1,80 @@
+---
+# Playbook para limpeza e remoção de servidores de jogo
+
+- name: Cleanup de servidor de jogo
+  hosts: all
+  become: yes
+  vars:
+    game_dir: "/opt/gameservers/{{ game_type }}"
+
+  tasks:
+    - name: Parar serviço do jogo
+      systemd:
+        name: "{{ game_type }}-server"
+        state: stopped
+        enabled: no
+      failed_when: false
+
+    - name: Remover arquivo de serviço systemd
+      file:
+        path: "/etc/systemd/system/{{ game_type }}-server.service"
+        state: absent
+
+    - name: Recarregar systemd
+      systemd:
+        daemon_reload: yes
+
+    - name: Fazer backup dos dados do servidor
+      block:
+        - name: Criar diretório de backup
+          file:
+            path: "/home/gameserver/backups/{{ game_type }}-{{ ansible_date_time.date }}"
+            state: directory
+            owner: gameserver
+            group: gameserver
+
+        - name: Fazer backup dos saves
+          copy:
+            src: "{{ game_dir }}/"
+            dest: "/home/gameserver/backups/{{ game_type }}-{{ ansible_date_time.date }}/"
+            owner: gameserver
+            group: gameserver
+            remote_src: yes
+          when: game_type in ['sotf', 'valheim', 'rust', 'ark']
+
+        - name: Fazer backup do mundo do Minecraft
+          copy:
+            src: "{{ game_dir }}/world/"
+            dest: "/home/gameserver/backups/{{ game_type }}-{{ ansible_date_time.date }}/world/"
+            owner: gameserver
+            group: gameserver
+            remote_src: yes
+          when: game_type == 'minecraft'
+
+    - name: Remover diretório do jogo
+      file:
+        path: "{{ game_dir }}"
+        state: absent
+
+    - name: Limpar logs antigos
+      find:
+        paths: "/home/gameserver/logs"
+        patterns: "*.log"
+        age: "7d"
+        state: absent
+
+    - name: Remover cron jobs do monitoramento
+      cron:
+        name: "Monitoramento do servidor"
+        state: absent
+        user: gameserver
+
+    - name: Mostrar informações de limpeza
+      debug:
+        msg: |
+          ==========================================
+          SERVIDOR REMOVIDO COM SUCESSO!
+          ==========================================
+          Tipo: {{ game_type }}
+          Backup salvo em: /home/gameserver/backups/{{ game_type }}-{{ ansible_date_time.date }}/
+          ==========================================

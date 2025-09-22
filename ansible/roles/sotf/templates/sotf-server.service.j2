@@ -1,0 +1,30 @@
+[Unit]
+Description=Sons of the Forest Dedicated Server
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=gameserver
+Group=gameserver
+WorkingDirectory=/opt/gameservers/sotf
+ExecStart=/opt/gameservers/sotf/start_server.sh
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=sotf-server
+
+# Configurações de segurança
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/gameservers/sotf /home/gameserver/logs
+
+# Configurações de recursos
+LimitNOFILE=65536
+LimitNPROC=32768
+
+[Install]
+WantedBy=multi-user.target

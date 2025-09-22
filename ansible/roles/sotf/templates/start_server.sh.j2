@@ -1,0 +1,35 @@
+#!/bin/bash
+# Script de inicialização do servidor Sons of the Forest
+
+set -e
+
+# Configurações
+GAME_DIR="/opt/gameservers/sotf"
+LOG_DIR="/home/gameserver/logs"
+CONFIG_FILE="$GAME_DIR/dedicatedserver.cfg"
+
+# Criar diretório de logs se não existir
+mkdir -p "$LOG_DIR"
+
+# Verificar se o arquivo de configuração existe
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "ERRO: Arquivo de configuração não encontrado: $CONFIG_FILE"
+    exit 1
+fi
+
+# Verificar se o executável existe
+if [ ! -f "$GAME_DIR/SonsOfTheForestDS.exe" ]; then
+    echo "ERRO: Executável do servidor não encontrado: $GAME_DIR/SonsOfTheForestDS.exe"
+    exit 1
+fi
+
+# Mudar para o diretório do jogo
+cd "$GAME_DIR"
+
+# Iniciar o servidor
+echo "Iniciando servidor Sons of the Forest..."
+echo "Data: $(date)" >> "$LOG_DIR/sotf-server.log"
+echo "Configuração: $CONFIG_FILE" >> "$LOG_DIR/sotf-server.log"
+
+# Executar o servidor
+exec ./SonsOfTheForestDS.exe -config "$CONFIG_FILE" 2>&1 | tee -a "$LOG_DIR/sotf-server.log"

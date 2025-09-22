@@ -1,0 +1,71 @@
+---
+# Role para Valheim
+
+- name: Verificar se SteamCMD está instalado
+  command: which steamcmd
+  register: steamcmd_check
+  failed_when: false
+  changed_when: false
+
+- name: Instalar dependências específicas do Valheim
+  apt:
+    name:
+      - lib32gcc-s1
+      - lib32stdc++6
+      - libc6-i386
+    state: present
+
+- name: Criar diretório do servidor Valheim
+  file:
+    path: /opt/gameservers/valheim
+    state: directory
+    owner: gameserver
+    group: gameserver
+    mode: '0755'
+
+- name: Baixar servidor Valheim via SteamCMD
+  shell: |
+    steamcmd +login anonymous +app_update 896660 validate +quit
+  args:
+    chdir: /opt/gameservers/valheim
+    creates: /opt/gameservers/valheim/valheim_server.x86_64
+  become_user: gameserver
+
+- name: Criar diretório de saves
+  file:
+    path: /opt/gameservers/valheim/saves
+    state: directory
+    owner: gameserver
+    group: gameserver
+    mode: '0755'
+
+- name: Criar script de inicialização
+  template:
+    src: start_server.sh.j2
+    dest: /opt/gameservers/valheim/start_server.sh
+    owner: gameserver
+    group: gameserver
+    mode: '0755'
+
+- name: Configurar systemd service
+  template:
+    src: valheim-server.service.j2
+    dest: /etc/systemd/system/valheim-server.service
+    mode: '0644'
+  notify: restart systemd
+
+- name: Habilitar e iniciar serviço Valheim
+  systemd:
+    name: valheim-server
+    enabled: yes
+    state: started
+    daemon_reload: yes
+
+- name: Verificar se o serviço está rodando
+  systemd:
+    name: valheim-server
+  register: service_status
+
+- name: Mostrar status do serviço
+  debug:
+    msg: "Servidor Valheim {{ 'rodando' if service_status.status.ActiveState == 'active' else 'com problemas' }}"

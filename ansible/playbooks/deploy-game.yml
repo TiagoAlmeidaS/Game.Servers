@@ -1,0 +1,113 @@
+---
+# Playbook principal para deploy de servidores de jogo
+# Suporta múltiplos tipos de jogos de forma modular
+
+- name: Deploy de servidor de jogo
+  hosts: all
+  become: yes
+  vars:
+    game_dir: "/opt/gameservers/{{ game_type }}"
+    log_dir: "/home/gameserver/logs"
+
+  pre_tasks:
+    - name: Verificar conectividade SSH
+      ping:
+
+    - name: Mostrar informações do servidor
+      debug:
+        msg: |
+          ==========================================
+          DEPLOY DE SERVIDOR DE JOGO
+          ==========================================
+          Tipo de Jogo: {{ game_type }}
+          Nome do Servidor: {{ server_name }}
+          IP do Servidor: {{ server_ip }}
+          Máximo de Jogadores: {{ max_players }}
+          ==========================================
+
+  roles:
+    - common
+
+  tasks:
+    - name: Executar role específica do jogo
+      include_role:
+        name: "{{ game_type }}"
+      when: game_type in ['sotf', 'minecraft', 'valheim', 'rust', 'ark']
+
+    - name: Configurar firewall local (ufw)
+      block:
+        - name: Habilitar UFW
+          ufw:
+            state: enabled
+            policy: deny
+
+        - name: Permitir SSH
+          ufw:
+            rule: allow
+            port: '22'
+            proto: tcp
+
+        - name: Permitir portas do jogo
+          ufw:
+            rule: allow
+            port: "{{ item.port }}"
+            proto: "{{ item.protocol }}"
+          loop: "{{ game_ports }}"
+          when: game_ports is defined
+
+    - name: Configurar monitoramento básico
+      block:
+        - name: Instalar htop e iotop
+          apt:
+            name: [htop, iotop, nethogs]
+            state: present
+
+        - name: Criar script de monitoramento
+          template:
+            src: monitor.sh.j2
+            dest: /home/gameserver/monitor.sh
+            owner: gameserver
+            group: gameserver
+            mode: '0755'
+
+        - name: Configurar cron para monitoramento
+          cron:
+            name: "Monitoramento do servidor"
+            job: "*/5 * * * * /home/gameserver/monitor.sh"
+            user: gameserver
+
+  post_tasks:
+    - name: Verificar status dos serviços
+      systemd:
+        name: "{{ game_type }}-server"
+      register: service_status
+      failed_when: false
+
+    - name: Mostrar informações de conexão
+      debug:
+        msg: |
+          ==========================================
+          SERVIDOR CONFIGURADO COM SUCESSO!
+          ==========================================
+          IP: {{ server_ip }}
+          Porta: {{ game_port }}
+          Nome: {{ server_name }}
+          Status: {{ 'ATIVO' if service_status.status.ActiveState == 'active' else 'INATIVO' }}
+          ==========================================
+          Para conectar no jogo, use:
+          {{ server_ip }}:{{ game_port }}
+          ==========================================
+
+    - name: Salvar informações de conexão
+      copy:
+        content: |
+          # Informações do Servidor {{ server_name }}
+          IP: {{ server_ip }}
+          Porta: {{ game_port }}
+          Tipo: {{ game_type }}
+          Criado em: {{ ansible_date_time.iso8601 }}
+          Status: {{ 'ATIVO' if service_status.status.ActiveState == 'active' else 'INATIVO' }}
+        dest: "/home/gameserver/server-info.txt"
+        owner: gameserver
+        group: gameserver
+        mode: '0644'

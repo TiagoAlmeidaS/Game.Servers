@@ -1,0 +1,11 @@
+---
+# Variáveis padrão para Valheim
+valheim_server_name: "{{ server_name }}"
+valheim_server_password: "{{ server_password }}"
+valheim_max_players: 10
+valheim_world_name: "Dedicated"
+valheim_public: true
+valheim_port: 2456
+valheim_query_port: 2457
+valheim_steam_port: 2458
+valheim_server_path: "/opt/gameservers/valheim"

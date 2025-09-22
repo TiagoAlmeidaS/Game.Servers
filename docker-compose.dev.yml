@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  game-servers-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: game-servers-dev
+    volumes:
+      - .:/workspace
+      - ~/.ssh:/home/developer/.ssh:ro
+      - ~/.terraform.d:/home/developer/.terraform.d
+    environment:
+      - TF_VAR_do_token=${DO_TOKEN}
+      - TF_VAR_ssh_key_id=${SSH_KEY_ID}
+      - ANSIBLE_HOST_KEY_CHECKING=False
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+  # Serviço para testes de conectividade
+  test-server:
+    image: ubuntu:22.04
+    container_name: test-server
+    ports:
+      - "2222:22"
+    volumes:
+      - ./test-server:/test-server
+    command: |
+      bash -c "
+        apt-get update &&
+        apt-get install -y openssh-server &&
+        mkdir /var/run/sshd &&
+        echo 'root:testpass' | chpasswd &&
+        sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config &&
+        /usr/sbin/sshd -D
+      "

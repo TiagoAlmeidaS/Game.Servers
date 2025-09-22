@@ -1,0 +1,89 @@
+---
+# Role para ARK: Survival Evolved
+
+- name: Verificar se SteamCMD está instalado
+  command: which steamcmd
+  register: steamcmd_check
+  failed_when: false
+  changed_when: false
+
+- name: Instalar dependências específicas do ARK
+  apt:
+    name:
+      - lib32gcc-s1
+      - lib32stdc++6
+      - libc6-i386
+      - lib32z1
+      - lib32ncurses5
+    state: present
+
+- name: Criar diretório do servidor ARK
+  file:
+    path: /opt/gameservers/ark
+    state: directory
+    owner: gameserver
+    group: gameserver
+    mode: '0755'
+
+- name: Baixar servidor ARK via SteamCMD
+  shell: |
+    steamcmd +login anonymous +app_update 376030 validate +quit
+  args:
+    chdir: /opt/gameservers/ark
+    creates: /opt/gameservers/ark/ShooterGame/Binaries/Linux/ShooterGameServer
+  become_user: gameserver
+
+- name: Criar diretório de saves
+  file:
+    path: /opt/gameservers/ark/saves
+    state: directory
+    owner: gameserver
+    group: gameserver
+    mode: '0755'
+
+- name: Criar diretório de logs
+  file:
+    path: /opt/gameservers/ark/logs
+    state: directory
+    owner: gameserver
+    group: gameserver
+    mode: '0755'
+
+- name: Criar diretório de mods
+  file:
+    path: /opt/gameservers/ark/mods
+    state: directory
+    owner: gameserver
+    group: gameserver
+    mode: '0755'
+
+- name: Criar script de inicialização
+  template:
+    src: start_server.sh.j2
+    dest: /opt/gameservers/ark/start_server.sh
+    owner: gameserver
+    group: gameserver
+    mode: '0755'
+
+- name: Configurar systemd service
+  template:
+    src: ark-server.service.j2
+    dest: /etc/systemd/system/ark-server.service
+    mode: '0644'
+  notify: restart systemd
+
+- name: Habilitar e iniciar serviço ARK
+  systemd:
+    name: ark-server
+    enabled: yes
+    state: started
+    daemon_reload: yes
+
+- name: Verificar se o serviço está rodando
+  systemd:
+    name: ark-server
+  register: service_status
+
+- name: Mostrar status do serviço
+  debug:
+    msg: "Servidor ARK {{ 'rodando' if service_status.status.ActiveState == 'active' else 'com problemas' }}"

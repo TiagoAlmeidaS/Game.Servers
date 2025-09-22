@@ -1,0 +1,105 @@
+---
+# Role para Minecraft
+
+- name: Instalar Java 17
+  apt:
+    name: openjdk-17-jdk
+    state: present
+
+- name: Verificar versão do Java
+  command: java -version
+  register: java_version
+  changed_when: false
+  failed_when: false
+
+- name: Mostrar versão do Java
+  debug:
+    msg: "{{ java_version.stderr_lines[0] }}"
+
+- name: Criar diretório do servidor Minecraft
+  file:
+    path: /opt/gameservers/minecraft
+    state: directory
+    owner: gameserver
+    group: gameserver
+    mode: '0755'
+
+- name: Baixar servidor Minecraft
+  get_url:
+    url: "https://launcher.mojang.com/v1/objects/{{ minecraft_version }}/server.jar"
+    dest: /opt/gameservers/minecraft/server.jar
+    owner: gameserver
+    group: gameserver
+    mode: '0644'
+  vars:
+    minecraft_version: "{{ minecraft_version | default('a1ffa95deebd449c644a6cdd3cdd832c0a8dd4ff') }}"
+
+- name: Criar arquivo eula.txt
+  copy:
+    content: "eula=true"
+    dest: /opt/gameservers/minecraft/eula.txt
+    owner: gameserver
+    group: gameserver
+    mode: '0644'
+
+- name: Criar server.properties
+  template:
+    src: server.properties.j2
+    dest: /opt/gameservers/minecraft/server.properties
+    owner: gameserver
+    group: gameserver
+    mode: '0644'
+
+- name: Criar script de inicialização
+  template:
+    src: start_server.sh.j2
+    dest: /opt/gameservers/minecraft/start_server.sh
+    owner: gameserver
+    group: gameserver
+    mode: '0755'
+
+- name: Configurar systemd service
+  template:
+    src: minecraft-server.service.j2
+    dest: /etc/systemd/system/minecraft-server.service
+    mode: '0644'
+  notify: restart systemd
+
+- name: Habilitar e iniciar serviço Minecraft
+  systemd:
+    name: minecraft-server
+    enabled: yes
+    state: started
+    daemon_reload: yes
+
+- name: Verificar se o serviço está rodando
+  systemd:
+    name: minecraft-server
+  register: service_status
+
+- name: Mostrar status do serviço
+  debug:
+    msg: "Servidor Minecraft {{ 'rodando' if service_status.status.ActiveState == 'active' else 'com problemas' }}"
+
+- name: Aguardar inicialização do servidor
+  wait_for:
+    port: 25565
+    host: "{{ ansible_default_ipv4.address }}"
+    delay: 10
+    timeout: 60
+  ignore_errors: yes
+
+- name: Mostrar informações de conexão
+  debug:
+    msg: |
+      ==========================================
+      SERVIDOR MINECRAFT CONFIGURADO!
+      ==========================================
+      IP: {{ ansible_default_ipv4.address }}
+      Porta: 25565
+      Nome: {{ server_name }}
+      Versão: {{ minecraft_version }}
+      ==========================================
+      Para conectar, use:
+      {{ ansible_default_ipv4.address }}:25565
+      ==========================================

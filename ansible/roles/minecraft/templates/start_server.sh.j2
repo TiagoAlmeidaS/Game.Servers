@@ -1,0 +1,40 @@
+#!/bin/bash
+# Script de inicialização do servidor Minecraft
+
+set -e
+
+# Configurações
+GAME_DIR="/opt/gameservers/minecraft"
+LOG_DIR="/home/gameserver/logs"
+JAVA_OPTS="{{ minecraft_java_opts | default('-Xmx2G -Xms1G -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1') }}"
+SERVER_JAR="server.jar"
+
+# Criar diretório de logs se não existir
+mkdir -p "$LOG_DIR"
+
+# Verificar se o arquivo do servidor existe
+if [ ! -f "$GAME_DIR/$SERVER_JAR" ]; then
+    echo "ERRO: Arquivo do servidor não encontrado: $GAME_DIR/$SERVER_JAR"
+    exit 1
+fi
+
+# Verificar se o Java está instalado
+if ! command -v java &> /dev/null; then
+    echo "ERRO: Java não encontrado. Instale o Java 17+"
+    exit 1
+fi
+
+# Mudar para o diretório do jogo
+cd "$GAME_DIR"
+
+# Criar arquivo de log com timestamp
+LOG_FILE="$LOG_DIR/minecraft-server-$(date +%Y%m%d-%H%M%S).log"
+
+# Iniciar o servidor
+echo "Iniciando servidor Minecraft..."
+echo "Data: $(date)" >> "$LOG_FILE"
+echo "Configuração: $GAME_DIR/server.properties" >> "$LOG_FILE"
+echo "Java Options: $JAVA_OPTS" >> "$LOG_FILE"
+
+# Executar o servidor
+exec java $JAVA_OPTS -jar "$SERVER_JAR" nogui 2>&1 | tee -a "$LOG_FILE"

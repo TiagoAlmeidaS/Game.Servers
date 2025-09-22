@@ -1,0 +1,138 @@
+# Exemplo de configuração para o Game.Servers
+# Copie este arquivo para terraform.tfvars e configure suas credenciais
+
+# ===========================================
+# CREDENCIAIS (OBRIGATÓRIO)
+# ===========================================
+do_token = "seu-token-do-digitalocean"
+ssh_key_id = "seu-ssh-key-id"
+
+# ===========================================
+# CONFIGURAÇÃO DO SERVIDOR
+# ===========================================
+server_name = "MeuServidorSotF"
+game_type = "sotf"  # sotf, minecraft, valheim, rust, ark
+server_password = "minha-senha-segura"
+max_players = 8
+
+# ===========================================
+# CONFIGURAÇÃO DA INFRAESTRUTURA
+# ===========================================
+environment = "dev"  # dev, staging, prod
+region = "nyc3"      # nyc1, nyc3, sfo3, sgp1, fra1, etc.
+instance_size = "s-2vcpu-8gb"  # s-1vcpu-2gb, s-2vcpu-4gb, s-2vcpu-8gb, etc.
+
+# ===========================================
+# CONFIGURAÇÕES ESPECÍFICAS POR JOGO
+# ===========================================
+
+# Sons of the Forest
+# game_type = "sotf"
+# max_players = 8
+# server_password = "senha-segura"
+
+# Minecraft
+# game_type = "minecraft"
+# max_players = 20
+# minecraft_difficulty = "normal"  # peaceful, easy, normal, hard
+# minecraft_gamemode = "survival"  # survival, creative, adventure, spectator
+# minecraft_level_type = "minecraft:normal"  # minecraft:normal, minecraft:flat, etc.
+# minecraft_seed = ""  # Seed do mundo (opcional)
+
+# Valheim
+# game_type = "valheim"
+# max_players = 10
+# server_password = "senha-segura"
+
+# Rust
+# game_type = "rust"
+# max_players = 100
+# server_password = "senha-segura"
+
+# ARK: Survival Evolved
+# game_type = "ark"
+# max_players = 20
+# server_password = "senha-segura"
+
+# ===========================================
+# CONFIGURAÇÕES AVANÇADAS (OPCIONAL)
+# ===========================================
+
+# Portas customizadas (sobrescreve padrão do jogo)
+# game_ports = [
+#   { port = "8766", protocol = "tcp" },
+#   { port = "8766", protocol = "udp" }
+# ]
+
+# Portas adicionais
+# custom_ports = [
+#   { port = "8080", protocol = "tcp" }
+# ]
+
+# Caminho para chave SSH privada
+# ssh_private_key_path = "~/.ssh/id_rsa"
+
+# ===========================================
+# CONFIGURAÇÕES DE MONITORAMENTO
+# ===========================================
+
+# Email para alertas
+# alert_email = "admin@exemplo.com"
+
+# Slack webhook para notificações
+# slack_webhook = "https://hooks.slack.com/services/..."
+
+# Discord webhook para notificações
+# discord_webhook = "https://discord.com/api/webhooks/..."
+
+# ===========================================
+# CONFIGURAÇÕES DE BACKUP
+# ===========================================
+
+# Frequência de backup (em horas)
+# backup_interval = 24
+
+# Retenção de backups (em dias)
+# backup_retention = 7
+
+# ===========================================
+# CONFIGURAÇÕES DE SEGURANÇA
+# ===========================================
+
+# Habilitar whitelist (Minecraft)
+# minecraft_whitelist = false
+
+# Modo online (Minecraft)
+# minecraft_online_mode = true
+
+# Habilitar PvP (SotF, Valheim, Rust, ARK)
+# enable_pvp = true
+
+# Habilitar cheats (SotF, Valheim, Rust, ARK)
+# enable_cheats = false
+
+# ===========================================
+# CONFIGURAÇÕES DE PERFORMANCE
+# ===========================================
+
+# Configurações de Java (Minecraft)
+# minecraft_java_opts = "-Xmx4G -Xms2G -XX:+UseG1GC"
+
+# Limite de memória do systemd
+# minecraft_memory_limit = "6G"
+
+# Configurações de rede
+# network_compression_threshold = 256
+
+# ===========================================
+# CONFIGURAÇÕES DE DESENVOLVIMENTO
+# ===========================================
+
+# Habilitar debug
+# debug = false
+
+# Log level
+# log_level = "INFO"
+
+# Habilitar métricas detalhadas
+# detailed_metrics = false

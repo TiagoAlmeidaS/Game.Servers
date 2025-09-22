@@ -1,0 +1,110 @@
+---
+# Playbook para configuração de backup em produção
+
+- name: Setup de backup para produção
+  hosts: all
+  become: yes
+  vars:
+    game_type: "{{ game_type }}"
+    provider: "{{ provider }}"
+    environment: "{{ environment }}"
+
+  tasks:
+    - name: Instalar ferramentas de backup
+      apt:
+        name:
+          - rsync
+          - rclone
+          - awscli
+          - azure-cli
+          - doctl
+        state: present
+
+    - name: Configurar backup específico do provedor
+      include_tasks: "backup-{{ provider }}.yml"
+      when: provider in ['aws', 'azure', 'digitalocean', 'hostinger', 'linode', 'vultr']
+
+    - name: Configurar backup local
+      block:
+        - name: Criar diretório de backup
+          file:
+            path: /home/gameserver/backups
+            state: directory
+            owner: gameserver
+            group: gameserver
+            mode: '0755'
+
+        - name: Configurar script de backup local
+          template:
+            src: backup-local.sh.j2
+            dest: /home/gameserver/backup-local.sh
+            owner: gameserver
+            group: gameserver
+            mode: '0755'
+
+        - name: Configurar cron para backup local
+          cron:
+            name: "Backup local"
+            job: "0 2 * * * /home/gameserver/backup-local.sh"
+            user: gameserver
+
+    - name: Configurar backup de configurações
+      block:
+        - name: Criar script de backup de configs
+          template:
+            src: backup-configs.sh.j2
+            dest: /home/gameserver/backup-configs.sh
+            owner: gameserver
+            group: gameserver
+            mode: '0755'
+
+        - name: Configurar cron para backup de configs
+          cron:
+            name: "Backup de configurações"
+            job: "0 3 * * * /home/gameserver/backup-configs.sh"
+            user: gameserver
+
+    - name: Configurar limpeza de backups antigos
+      block:
+        - name: Criar script de limpeza
+          template:
+            src: cleanup-backups.sh.j2
+            dest: /home/gameserver/cleanup-backups.sh
+            owner: gameserver
+            group: gameserver
+            mode: '0755'
+
+        - name: Configurar cron para limpeza
+          cron:
+            name: "Limpeza de backups antigos"
+            job: "0 4 * * 0 /home/gameserver/cleanup-backups.sh"
+            user: gameserver
+
+    - name: Configurar verificação de integridade
+      block:
+        - name: Criar script de verificação
+          template:
+            src: verify-backups.sh.j2
+            dest: /home/gameserver/verify-backups.sh
+            owner: gameserver
+            group: gameserver
+            mode: '0755'
+
+        - name: Configurar cron para verificação
+          cron:
+            name: "Verificação de backups"
+            job: "0 5 * * 1 /home/gameserver/verify-backups.sh"
+            user: gameserver
+
+    - name: Mostrar informações de backup
+      debug:
+        msg: |
+          ==========================================
+          BACKUP CONFIGURADO!
+          ==========================================
+          Backup Local: /home/gameserver/backups/
+          Backup Cloud: {{ provider | title }}
+          Frequência: Diária às 2h
+          Limpeza: Semanal aos domingos
+          Verificação: Semanal às segundas
+          ==========================================

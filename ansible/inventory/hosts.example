@@ -1,0 +1,15 @@
+# Exemplo de inventário para Game.Servers
+# Copie este arquivo para hosts e configure conforme necessário
+
+[game_servers]
+# Servidores de jogo
+# Exemplo: 192.168.1.100 ansible_user=root ansible_ssh_private_key_file=~/.ssh/id_rsa
+
+[local]
+# Servidor local para testes
+localhost ansible_connection=local
+
+[all:vars]
+# Variáveis globais
+ansible_python_interpreter=/usr/bin/python3
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'

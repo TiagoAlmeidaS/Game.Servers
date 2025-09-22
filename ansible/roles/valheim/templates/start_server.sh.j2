@@ -1,0 +1,19 @@
+#!/bin/bash
+# Script de inicialização do servidor Valheim
+
+cd {{ valheim_server_path }}
+
+# Configurar variáveis de ambiente
+export SteamAppId=892970
+
+# Iniciar servidor Valheim
+./valheim_server.x86_64 \
+  -name "{{ valheim_server_name }}" \
+  -port {{ valheim_port }} \
+  -world "{{ valheim_world_name }}" \
+  -password "{{ valheim_server_password }}" \
+  -public {{ valheim_public | lower }} \
+  -savedir "{{ valheim_server_path }}/saves" \
+  -logFile "{{ valheim_server_path }}/logs/valheim.log" \
+  -batchmode \
+  -nographics

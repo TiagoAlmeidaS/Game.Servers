@@ -1,0 +1,21 @@
+[Unit]
+Description=Rust Dedicated Server
+After=network.target
+
+[Service]
+Type=simple
+User=gameserver
+Group=gameserver
+WorkingDirectory={{ rust_server_path }}
+ExecStart={{ rust_server_path }}/start_server.sh
+Restart=always
+RestartSec=10
+
+# Configurações de recursos
+LimitNOFILE=65536
+
+# Configurações de ambiente
+Environment=SteamAppId=258550
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,105 @@
+---
+# Role comum para todos os servidores de jogo
+
+- name: Atualizar sistema
+  apt:
+    update_cache: yes
+    upgrade: dist
+    autoremove: yes
+
+- name: Instalar dependências básicas
+  apt:
+    name:
+      - curl
+      - wget
+      - unzip
+      - software-properties-common
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - lsb-release
+      - htop
+      - nano
+      - git
+    state: present
+
+- name: Configurar timezone
+  timezone:
+    name: UTC
+
+- name: Configurar usuário gameserver
+  user:
+    name: gameserver
+    shell: /bin/bash
+    home: /home/gameserver
+    create_home: yes
+    groups: sudo
+    append: yes
+
+- name: Criar diretórios base
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: gameserver
+    group: gameserver
+    mode: '0755'
+  loop:
+    - /opt/gameservers
+    - /opt/gameservers/{{ game_type }}
+    - /home/gameserver/logs
+    - /home/gameserver/backups
+
+- name: Configurar sudo para gameserver
+  lineinfile:
+    path: /etc/sudoers
+    line: "gameserver ALL=(ALL) NOPASSWD:ALL"
+    validate: 'visudo -cf %s'
+
+- name: Instalar SteamCMD
+  block:
+    - name: Adicionar repositório multiverse
+      apt_repository:
+        repo: "deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }} multiverse"
+        state: present
+
+    - name: Adicionar arquitetura i386
+      command: dpkg --add-architecture i386
+      changed_when: false
+
+    - name: Atualizar cache de pacotes
+      apt:
+        update_cache: yes
+
+    - name: Instalar SteamCMD
+      apt:
+        name: steamcmd
+        state: present
+
+- name: Configurar logrotate para logs de jogos
+  copy:
+    content: |
+      /home/gameserver/logs/*.log {
+          daily
+          missingok
+          rotate 7
+          compress
+          delaycompress
+          notifempty
+          create 644 gameserver gameserver
+      }
+    dest: /etc/logrotate.d/gameserver
+    mode: '0644'
+
+- name: Configurar limite de arquivos
+  pam_limits:
+    domain: gameserver
+    limit_type: soft
+    limit_item: nofile
+    value: 65536
+
+- name: Configurar limite de processos
+  pam_limits:
+    domain: gameserver
+    limit_type: soft
+    limit_item: nproc
+    value: 32768

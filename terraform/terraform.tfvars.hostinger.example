@@ -1,0 +1,164 @@
+# Exemplo de configuração para Hostinger VPS
+# Copie este arquivo para terraform.tfvars e configure suas credenciais
+
+# ===========================================
+# CREDENCIAIS HOSTINGER (OBRIGATÓRIO)
+# ===========================================
+hostinger_api_key = "sua-api-key-da-hostinger"
+ssh_key_id = "seu-ssh-key-id"
+
+# ===========================================
+# CONFIGURAÇÃO DO SERVIDOR
+# ===========================================
+server_name = "MeuServidorSotF"
+game_type = "sotf"  # sotf, minecraft, valheim, rust, ark
+server_password = "minha-senha-segura"
+max_players = 8
+
+# ===========================================
+# CONFIGURAÇÃO DA INFRAESTRUTURA HOSTINGER
+# ===========================================
+provider = "hostinger"
+environment = "dev"  # dev, staging, prod
+region = "amsterdam"  # amsterdam, london, frankfurt, newyork, losangeles, singapore, tokyo
+instance_size = "vps-2"  # vps-1, vps-2, vps-3, vps-4, vps-5
+
+# ===========================================
+# CONFIGURAÇÕES ESPECÍFICAS POR JOGO
+# ===========================================
+
+# Sons of the Forest
+# game_type = "sotf"
+# instance_size = "vps-3"  # 3 CPU, 4GB RAM
+# max_players = 8
+# server_password = "senha-segura"
+
+# Minecraft
+# game_type = "minecraft"
+# instance_size = "vps-2"  # 2 CPU, 2GB RAM
+# max_players = 20
+# minecraft_difficulty = "normal"
+# minecraft_gamemode = "survival"
+
+# Valheim
+# game_type = "valheim"
+# instance_size = "vps-2"  # 2 CPU, 2GB RAM
+# max_players = 10
+# server_password = "senha-segura"
+
+# Rust
+# game_type = "rust"
+# instance_size = "vps-4"  # 4 CPU, 8GB RAM
+# max_players = 50
+# server_password = "senha-segura"
+
+# ARK: Survival Evolved
+# game_type = "ark"
+# instance_size = "vps-4"  # 4 CPU, 8GB RAM
+# max_players = 20
+# server_password = "senha-segura"
+
+# ===========================================
+# CONFIGURAÇÕES AVANÇADAS (OPCIONAL)
+# ===========================================
+
+# Portas customizadas (sobrescreve padrão do jogo)
+# game_ports = [
+#   { port = "8766", protocol = "tcp" },
+#   { port = "8766", protocol = "udp" }
+# ]
+
+# Portas adicionais
+# custom_ports = [
+#   { port = "8080", protocol = "tcp" }
+# ]
+
+# Caminho para chave SSH privada
+# ssh_private_key_path = "~/.ssh/id_rsa"
+
+# ===========================================
+# CONFIGURAÇÕES DE MONITORAMENTO
+# ===========================================
+
+# Email para alertas
+# alert_email = "admin@exemplo.com"
+
+# Slack webhook para notificações
+# slack_webhook = "https://hooks.slack.com/services/..."
+
+# Discord webhook para notificações
+# discord_webhook = "https://discord.com/api/webhooks/..."
+
+# ===========================================
+# CONFIGURAÇÕES DE BACKUP
+# ===========================================
+
+# Frequência de backup (em horas)
+# backup_interval = 24
+
+# Retenção de backups (em dias)
+# backup_retention = 7
+
+# ===========================================
+# CONFIGURAÇÕES DE SEGURANÇA
+# ===========================================
+
+# Habilitar whitelist (Minecraft)
+# minecraft_whitelist = false
+
+# Modo online (Minecraft)
+# minecraft_online_mode = true
+
+# Habilitar PvP (SotF, Valheim, Rust, ARK)
+# enable_pvp = true
+
+# Habilitar cheats (SotF, Valheim, Rust, ARK)
+# enable_cheats = false
+
+# ===========================================
+# CONFIGURAÇÕES DE PERFORMANCE
+# ===========================================
+
+# Configurações de Java (Minecraft)
+# minecraft_java_opts = "-Xmx2G -Xms1G -XX:+UseG1GC"
+
+# Limite de memória do systemd
+# minecraft_memory_limit = "3G"
+
+# Configurações de rede
+# network_compression_threshold = 256
+
+# ===========================================
+# CONFIGURAÇÕES DE DESENVOLVIMENTO
+# ===========================================
+
+# Habilitar debug
+# debug = false
+
+# Log level
+# log_level = "INFO"
+
+# Habilitar métricas detalhadas
+# detailed_metrics = false
+
+# ===========================================
+# INFORMAÇÕES SOBRE PLANOS HOSTINGER
+# ===========================================
+
+# VPS 1: 1 CPU, 1GB RAM, 20GB SSD - €3.99/mês
+# VPS 2: 2 CPU, 2GB RAM, 40GB SSD - €7.99/mês
+# VPS 3: 3 CPU, 4GB RAM, 80GB SSD - €15.99/mês
+# VPS 4: 4 CPU, 8GB RAM, 160GB SSD - €31.99/mês
+# VPS 5: 6 CPU, 16GB RAM, 320GB SSD - €63.99/mês
+
+# ===========================================
+# REGIÕES HOSTINGER DISPONÍVEIS
+# ===========================================
+
+# amsterdam: Amsterdam, Netherlands
+# london: London, UK
+# frankfurt: Frankfurt, Germany
+# newyork: New York, USA
+# losangeles: Los Angeles, USA
+# singapore: Singapore
+# tokyo: Tokyo, Japan

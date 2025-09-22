@@ -1,0 +1,31 @@
+#!/bin/bash
+# Script de inicialização do servidor Rust
+
+cd {{ rust_server_path }}
+
+# Configurar variáveis de ambiente
+export SteamAppId=258550
+
+# Iniciar servidor Rust
+./RustDedicated \
+  -batchmode \
+  -nographics \
+  -server.hostname "{{ rust_server_name }}" \
+  -server.description "{{ rust_server_description }}" \
+  -server.port {{ rust_port }} \
+  -server.queryport {{ rust_query_port }} \
+  -rcon.port {{ rust_rcon_port }} \
+  -rcon.password "{{ rust_rcon_password }}" \
+  -server.maxplayers {{ rust_max_players }} \
+  -server.worldsize {{ rust_world_size }} \
+  -server.seed {{ rust_seed }} \
+  -server.saveinterval {{ rust_save_interval }} \
+  -server.autosaveinterval {{ rust_autosave_interval }} \
+  -server.identity "{{ rust_server_name }}" \
+  -server.level "Procedural Map" \
+  -server.url "https://rust.facepunch.com" \
+  -server.secure 1 \
+  -server.eac 1 \
+  -server.stability 1 \
+  -server.cfg "server.cfg" \
+  -logfile "{{ rust_server_path }}/logs/rust.log"

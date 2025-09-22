@@ -1,0 +1,156 @@
+---
+# Playbook para configuração de alertas em produção
+
+- name: Setup de alertas para produção
+  hosts: all
+  become: yes
+  vars:
+    game_type: "{{ game_type }}"
+    provider: "{{ provider }}"
+    environment: "{{ environment }}"
+
+  tasks:
+    - name: Instalar ferramentas de alertas
+      apt:
+        name:
+          - mailutils
+          - curl
+          - jq
+        state: present
+
+    - name: Configurar alertas por email
+      block:
+        - name: Configurar Postfix
+          apt:
+            name: postfix
+            state: present
+
+        - name: Configurar Postfix para envio
+          lineinfile:
+            path: /etc/postfix/main.cf
+            line: "{{ item }}"
+            create: yes
+          loop:
+            - "relayhost = [smtp.gmail.com]:587"
+            - "smtp_use_tls = yes"
+            - "smtp_sasl_auth_enable = yes"
+            - "smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd"
+            - "smtp_sasl_security_options = noanonymous"
+
+        - name: Configurar autenticação SMTP
+          copy:
+            content: |
+              [smtp.gmail.com]:587 {{ alert_email }}:{{ alert_email_password }}
+            dest: /etc/postfix/sasl_passwd
+            mode: '0600'
+          when: alert_email is defined and alert_email_password is defined
+
+        - name: Atualizar hash de senhas
+          command: postmap /etc/postfix/sasl_passwd
+          when: alert_email is defined and alert_email_password is defined
+
+        - name: Reiniciar Postfix
+          systemd:
+            name: postfix
+            state: restarted
+          when: alert_email is defined and alert_email_password is defined
+
+    - name: Configurar alertas para Slack
+      block:
+        - name: Criar script de alerta para Slack
+          template:
+            src: slack-alert.sh.j2
+            dest: /home/gameserver/slack-alert.sh
+            owner: gameserver
+            group: gameserver
+            mode: '0755'
+
+        - name: Configurar cron para alertas Slack
+          cron:
+            name: "Alertas Slack"
+            job: "*/5 * * * * /home/gameserver/slack-alert.sh"
+            user: gameserver
+      when: slack_webhook is defined
+
+    - name: Configurar alertas para Discord
+      block:
+        - name: Criar script de alerta para Discord
+          template:
+            src: discord-alert.sh.j2
+            dest: /home/gameserver/discord-alert.sh
+            owner: gameserver
+            group: gameserver
+            mode: '0755'
+
+        - name: Configurar cron para alertas Discord
+          cron:
+            name: "Alertas Discord"
+            job: "*/5 * * * * /home/gameserver/discord-alert.sh"
+            user: gameserver
+      when: discord_webhook is defined
+
+    - name: Configurar alertas específicos do provedor
+      include_tasks: "alerts-{{ provider }}.yml"
+      when: provider in ['aws', 'azure', 'digitalocean', 'hostinger', 'linode', 'vultr']
+
+    - name: Configurar alertas de sistema
+      block:
+        - name: Criar script de alertas de sistema
+          template:
+            src: system-alerts.sh.j2
+            dest: /home/gameserver/system-alerts.sh
+            owner: gameserver
+            group: gameserver
+            mode: '0755'
+
+        - name: Configurar cron para alertas de sistema
+          cron:
+            name: "Alertas de sistema"
+            job: "*/2 * * * * /home/gameserver/system-alerts.sh"
+            user: gameserver
+
+    - name: Configurar alertas do jogo
+      block:
+        - name: Criar script de alertas do jogo
+          template:
+            src: game-alerts.sh.j2
+            dest: /home/gameserver/game-alerts.sh
+            owner: gameserver
+            group: gameserver
+            mode: '0755'
+
+        - name: Configurar cron para alertas do jogo
+          cron:
+            name: "Alertas do jogo"
+            job: "*/1 * * * * /home/gameserver/game-alerts.sh"
+            user: gameserver
+
+    - name: Configurar alertas de backup
+      block:
+        - name: Criar script de alertas de backup
+          template:
+            src: backup-alerts.sh.j2
+            dest: /home/gameserver/backup-alerts.sh
+            owner: gameserver
+            group: gameserver
+            mode: '0755'
+
+        - name: Configurar cron para alertas de backup
+          cron:
+            name: "Alertas de backup"
+            job: "0 6 * * * /home/gameserver/backup-alerts.sh"
+            user: gameserver
+
+    - name: Mostrar informações de alertas
+      debug:
+        msg: |
+          ==========================================
+          ALERTAS CONFIGURADOS!
+          ==========================================
+          Email: {{ 'Configurado' if alert_email is defined else 'N/A' }}
+          Slack: {{ 'Configurado' if slack_webhook is defined else 'N/A' }}
+          Discord: {{ 'Configurado' if discord_webhook is defined else 'N/A' }}
+          Sistema: Configurado
+          Jogo: Configurado
+          Backup: Configurado
+          ==========================================

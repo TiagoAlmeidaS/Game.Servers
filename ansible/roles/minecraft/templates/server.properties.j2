@@ -1,0 +1,54 @@
+# Configuração do servidor Minecraft
+# Gerado automaticamente pelo Game.Servers
+
+# Configurações básicas
+server-name={{ server_name }}
+motd={{ server_name }} - Game.Servers
+server-port=25565
+max-players={{ max_players | default(20) }}
+difficulty={{ minecraft_difficulty | default('normal') }}
+gamemode={{ minecraft_gamemode | default('survival') }}
+hardcore={{ minecraft_hardcore | default('false') }}
+pvp={{ minecraft_pvp | default('true') }}
+
+# Configurações de mundo
+level-name=world
+level-type={{ minecraft_level_type | default('minecraft:normal') }}
+level-seed={{ minecraft_seed | default('') }}
+generate-structures={{ minecraft_structures | default('true') }}
+
+# Configurações de rede
+online-mode={{ minecraft_online_mode | default('true') }}
+white-list={{ minecraft_whitelist | default('false') }}
+enforce-whitelist={{ minecraft_enforce_whitelist | default('false') }}
+
+# Configurações de chat
+enable-command-block={{ minecraft_command_blocks | default('false') }}
+enable-query={{ minecraft_query | default('false') }}
+enable-rcon={{ minecraft_rcon | default('false') }}
+
+# Configurações de performance
+view-distance={{ minecraft_view_distance | default('10') }}
+simulation-distance={{ minecraft_simulation_distance | default('10') }}
+max-tick-time={{ minecraft_max_tick_time | default('60000') }}
+
+# Configurações de spawn
+spawn-protection={{ minecraft_spawn_protection | default('16') }}
+spawn-npcs={{ minecraft_spawn_npcs | default('true') }}
+spawn-animals={{ minecraft_spawn_animals | default('true') }}
+spawn-monsters={{ minecraft_spawn_monsters | default('true') }}
+
+# Configurações de recursos
+resource-pack={{ minecraft_resource_pack | default('') }}
+resource-pack-sha1={{ minecraft_resource_pack_sha1 | default('') }}
+resource-pack-prompt={{ minecraft_resource_pack_prompt | default('') }}
+
+# Configurações de rede avançadas
+network-compression-threshold={{ minecraft_network_compression | default('256') }}
+max-world-size={{ minecraft_max_world_size | default('29999984') }}
+
+# Configurações de log
+log-ips={{ minecraft_log_ips | default('true') }}
+
+# Configurações de debug
+debug={{ minecraft_debug | default('false') }}

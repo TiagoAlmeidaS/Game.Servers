@@ -1,0 +1,98 @@
+name: Ansible CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths: [ 'ansible/**' ]
+  pull_request:
+    branches: [ main ]
+    paths: [ 'ansible/**' ]
+
+env:
+  ANSIBLE_VERSION: '6.0.0'
+
+jobs:
+  ansible-lint:
+    name: Ansible Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ansible
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install Ansible
+      run: |
+        pip install ansible==${{ env.ANSIBLE_VERSION }}
+        pip install ansible-lint
+
+    - name: Ansible Lint
+      run: ansible-lint playbooks/ roles/
+
+  ansible-syntax:
+    name: Ansible Syntax Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ansible
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install Ansible
+      run: pip install ansible==${{ env.ANSIBLE_VERSION }}
+
+    - name: Ansible Syntax Check
+      run: |
+        ansible-playbook --syntax-check playbooks/deploy-game.yml
+        ansible-playbook --syntax-check playbooks/cleanup-game.yml
+
+  ansible-test:
+    name: Ansible Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ansible
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install Ansible
+      run: pip install ansible==${{ env.ANSIBLE_VERSION }}
+
+    - name: Test Common Role
+      run: |
+        ansible-playbook --check --diff playbooks/deploy-game.yml \
+          --extra-vars "game_type=sotf" \
+          --extra-vars "server_name=test-server" \
+          --extra-vars "server_password=test-password" \
+          --extra-vars "max_players=8" \
+          --inventory localhost,
+
+    - name: Test SotF Role
+      run: |
+        ansible-playbook --check --diff playbooks/deploy-game.yml \
+          --extra-vars "game_type=sotf" \
+          --extra-vars "server_name=test-sotf" \
+          --extra-vars "server_password=test-password" \
+          --extra-vars "max_players=8" \
+          --inventory localhost,

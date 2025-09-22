@@ -1,0 +1,79 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform/
+.terraform.lock.hcl
+crash.log
+crash.*.log
+*.tfplan
+*.tfplan.*
+
+# Ansible
+*.retry
+.ansible/
+ansible.cfg.local
+
+# SSH
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+
+# Logs
+*.log
+logs/
+log/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Secrets
+secrets/
+.secrets/
+*.secret
+*.env
+.env
+
+# Game server data
+saves/
+worlds/
+backups/

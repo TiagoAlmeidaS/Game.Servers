@@ -1,0 +1,58 @@
+---
+# Variáveis padrão para Minecraft
+
+# Versão do servidor
+minecraft_version: "a1ffa95deebd449c644a6cdd3cdd832c0a8dd4ff"  # Última versão estável
+
+# Configurações do servidor
+minecraft_difficulty: "normal"  # peaceful, easy, normal, hard
+minecraft_gamemode: "survival"  # survival, creative, adventure, spectator
+minecraft_hardcore: false
+minecraft_pvp: true
+
+# Configurações de mundo
+minecraft_level_type: "minecraft:normal"  # minecraft:normal, minecraft:flat, minecraft:large_biomes, etc.
+minecraft_seed: ""
+minecraft_structures: true
+
+# Configurações de rede
+minecraft_online_mode: true
+minecraft_whitelist: false
+minecraft_enforce_whitelist: false
+
+# Configurações de chat
+minecraft_command_blocks: false
+minecraft_query: false
+minecraft_rcon: false
+
+# Configurações de performance
+minecraft_view_distance: 10
+minecraft_simulation_distance: 10
+minecraft_max_tick_time: 60000
+
+# Configurações de spawn
+minecraft_spawn_protection: 16
+minecraft_spawn_npcs: true
+minecraft_spawn_animals: true
+minecraft_spawn_monsters: true
+
+# Configurações de recursos
+minecraft_resource_pack: ""
+minecraft_resource_pack_sha1: ""
+minecraft_resource_pack_prompt: ""
+
+# Configurações de rede avançadas
+minecraft_network_compression: 256
+minecraft_max_world_size: 29999984
+
+# Configurações de log
+minecraft_log_ips: true
+
+# Configurações de debug
+minecraft_debug: false
+
+# Configurações de Java
+minecraft_java_opts: "-Xmx2G -Xms1G -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1"
+
+# Limite de memória do systemd
+minecraft_memory_limit: "4G"
