@@ -54,18 +54,30 @@ Game.Servers/
    cd Game.Servers
    ```
 
-2. **Configure as variáveis**
+2. **Verificar dependências**
+   ```bash
+   # Verificar se tudo está instalado
+   ./scripts/verify-dependencies.sh
+   ```
+
+3. **Configure as variáveis**
    ```bash
    cp terraform/terraform.tfvars.example terraform/terraform.tfvars
    # Edite terraform.tfvars com suas credenciais
    ```
 
-3. **Deploy de um servidor**
+4. **Deploy de um servidor**
    ```bash
    # Deploy universal (qualquer provedor)
    ./scripts/deploy-universal.sh digitalocean sotf
    ./scripts/deploy-universal.sh hostinger minecraft
    ./scripts/deploy-universal.sh aws valheim
+   
+   # Deploy com verificação automática
+   ./scripts/deploy-with-verification.sh hostinger sotf prod --monitoring --backup
+   
+   # Teste específico do Hostinger
+   ./scripts/test-hostinger.sh
    
    # Ou deploy manual
    cd terraform
@@ -73,10 +85,22 @@ Game.Servers/
    terraform apply -var="provider=digitalocean" -var="game_type=sotf"
    ```
 
-4. **Acesse seu servidor**
+5. **Acesse seu servidor**
    - IP será exibido no output do Terraform
    - Sons of the Forest: `IP:8766`
    - Minecraft: `IP:25565`
+   - Valheim: `IP:2456`
+   - Rust: `IP:28015`
+   - ARK: `IP:7777`
+
+6. **Verificação automática**
+   ```bash
+   # Verificar dependências
+   ./scripts/verify-dependencies.sh
+   
+   # Verificar credenciais do provedor
+   ./scripts/verify-provider-credentials.sh hostinger
+   ```
 
 ## 📚 Documentação
 
@@ -84,6 +108,9 @@ Toda documentação está na pasta [`docs/`](./docs/):
 - [Setup completo do Sons of the Forest](./docs/sotf-setup.md)
 - [Setup completo do Minecraft](./docs/minecraft-setup.md)
 - [Setup para Hostinger VPS](./docs/hostinger-setup.md)
+- [Setup para AWS](./docs/aws-setup.md)
+- [Setup para Azure](./docs/azure-setup.md)
+- [Configurações de Jogos](./docs/game-configurations.md)
 - [Suporte Multi-Provedor](./docs/multi-provider-setup.md)
 - [Arquitetura do sistema](./docs/architecture.md)
 - [Guia de expansão para novos jogos](./docs/adding-games.md)
